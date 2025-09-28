@@ -182,5 +182,5 @@ pub async fn upsert_bookmark_to_list(
     // Either way, make sure that the bookmark is in the specified list
     client::ensure_bookmark_in_list(&bookmark_id, list_id).await?;
     // Return true if created, false if already existed
-    Ok(true)
+    Ok(to_create)
 }
