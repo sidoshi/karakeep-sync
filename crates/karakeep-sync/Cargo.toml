@@ -13,3 +13,4 @@ futures = { workspace = true }
 config = "0.15.17"
 serde = "1.0.228"
 serde_json = "1.0.145"
+tokio-cron-scheduler = { version = "0.14.0", features = ["english", "signal"] }

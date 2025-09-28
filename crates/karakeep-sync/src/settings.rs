@@ -7,6 +7,7 @@ use crate::settings;
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct HNSettings {
     pub auth: String,
+    pub schedule: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -27,6 +28,8 @@ impl Settings {
 
         let config = Config::builder()
             .add_source(config::Environment::with_prefix("KS").separator("_"))
+            .set_override("hn.schedule", "@daily")
+            .unwrap()
             .build()
             .unwrap();
 
