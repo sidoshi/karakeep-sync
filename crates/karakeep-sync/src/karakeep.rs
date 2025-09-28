@@ -164,17 +164,21 @@ pub async fn upsert_bookmark_to_list(
     list: &str,
 ) -> anyhow::Result<bool> {
     // Check if bookmark exists by URL
+    tracing::debug!("checking if bookmark exists: {}", &bookmark.url);
     let exists = client::bookmark_exists(&bookmark.url).await?;
     let to_create = exists.is_none();
+    tracing::debug!("bookmark exists: {}", !to_create);
 
     let bookmark_id: String;
     // If it doesn't exist, create it
     if to_create {
+        tracing::info!("creating bookmark: {} - {}", &bookmark.title, &bookmark.url);
         bookmark_id = client::create_bookmark(&bookmark.title, &bookmark.url).await?;
     } else {
         bookmark_id = exists.unwrap();
     }
 
+    tracing::debug!("adding bookmark: {} to list: {}", &bookmark_id, list);
     // Either way, make sure that the bookmark is in the specified list
     client::ensure_bookmark_in_list(&bookmark_id, list).await?;
     // Return true if created, false if already existed

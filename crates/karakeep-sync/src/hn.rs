@@ -19,6 +19,7 @@ pub async fn sync_hn_upvoted_posts(hn_auth: &str) -> anyhow::Result<i32> {
     let mut exists = 0;
     let mut created_count = 0;
     while let Some(page) = pages.next().await {
+        tracing::info!("processing a page of upvoted posts (count={})", page.len());
         for post in page {
             let bookmark = BookmarkCreate {
                 title: post.title.clone(),
@@ -34,6 +35,7 @@ pub async fn sync_hn_upvoted_posts(hn_auth: &str) -> anyhow::Result<i32> {
 
             // if we have 5 consecutive existing posts, we can assume we've caught up
             if exists >= 5 {
+                tracing::info!("5 consecutive existing posts found, stopping sync");
                 return Ok(created_count);
             }
         }
