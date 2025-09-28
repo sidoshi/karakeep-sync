@@ -18,6 +18,8 @@ pub async fn sync_hn_upvoted_posts(hn_auth: &str) -> anyhow::Result<i32> {
 
     let mut exists = 0;
     let mut created_count = 0;
+    let list_id = karakeep::ensure_list_exists(HN_UPVOTED_LIST).await?;
+
     while let Some(page) = pages.next().await {
         tracing::info!("processing a page of upvoted posts (count={})", page.len());
         for post in page {
@@ -25,7 +27,7 @@ pub async fn sync_hn_upvoted_posts(hn_auth: &str) -> anyhow::Result<i32> {
                 title: post.title.clone(),
                 url: post.url.clone(),
             };
-            let created = karakeep::upsert_bookmark_to_list(&bookmark, HN_UPVOTED_LIST).await?;
+            let created = karakeep::upsert_bookmark_to_list(&bookmark, &list_id).await?;
             if created {
                 exists = 0;
                 created_count += 1;

@@ -138,11 +138,9 @@ mod client {
             })
     }
 
-    pub async fn ensure_bookmark_in_list(bookmark_id: &str, list: &str) -> anyhow::Result<()> {
+    pub async fn ensure_bookmark_in_list(bookmark_id: &str, list_id: &str) -> anyhow::Result<()> {
         let settings = settings::get_settings();
         let client = get_client();
-
-        let list_id = ensure_list_exists(list).await?;
 
         let url = format!(
             "{}/api/v1/lists/{}/bookmarks/{}",
@@ -154,6 +152,8 @@ mod client {
     }
 }
 
+pub use client::ensure_list_exists;
+
 pub struct BookmarkCreate {
     pub title: String,
     pub url: String,
@@ -161,7 +161,7 @@ pub struct BookmarkCreate {
 
 pub async fn upsert_bookmark_to_list(
     bookmark: &BookmarkCreate,
-    list: &str,
+    list_id: &str,
 ) -> anyhow::Result<bool> {
     // Check if bookmark exists by URL
     tracing::debug!("checking if bookmark exists: {}", &bookmark.url);
@@ -178,9 +178,9 @@ pub async fn upsert_bookmark_to_list(
         bookmark_id = exists.unwrap();
     }
 
-    tracing::debug!("adding bookmark: {} to list: {}", &bookmark_id, list);
+    tracing::debug!("adding bookmark: {} to list: {}", &bookmark_id, list_id);
     // Either way, make sure that the bookmark is in the specified list
-    client::ensure_bookmark_in_list(&bookmark_id, list).await?;
+    client::ensure_bookmark_in_list(&bookmark_id, list_id).await?;
     // Return true if created, false if already existed
     Ok(true)
 }
