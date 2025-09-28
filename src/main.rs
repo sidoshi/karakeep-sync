@@ -30,7 +30,19 @@ async fn main() -> anyhow::Result<()> {
         .text()
         .await?;
 
-    dbg!(body);
+    let document = scraper::Html::parse_document(&body);
+
+    let title_selector = scraper::Selector::parse("tr.athing td.title span.titleline > a")
+        .expect("Failed to parse selector");
+    dbg!(
+        document
+            .select(&title_selector)
+            .map(|el| (
+                el.text().collect::<String>(),
+                el.value().attr("href").unwrap_or("")
+            ))
+            .collect::<Vec<_>>()
+    );
 
     Ok(())
 }
