@@ -1,0 +1,15 @@
+[package]
+name = "karakeep-sync"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+dotenvy = { workspace = true }
+reqwest = { workspace = true }
+hnscraper = { path = "../hnscraper" }
+futures = { workspace = true }
+config = "0.15.17"
+serde = "1.0.228"
+serde_json = "1.0.145"

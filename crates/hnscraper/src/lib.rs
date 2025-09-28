@@ -26,9 +26,20 @@ fn get_upvoted_submissions_from_document(document: &scraper::Html) -> Vec<HNPost
 
     document
         .select(&title_selector)
-        .map(|el| HNPost {
-            title: el.text().collect::<String>(),
-            url: el.value().attr("href").unwrap_or("").to_string(),
+        .map(|el| {
+            let url = el.value().attr("href").unwrap_or("").to_string();
+
+            // if the URL is relative, make it absolute
+            let url = if url.starts_with("item?") {
+                format!("{}/{}", HN_BASE_URL, url)
+            } else {
+                url
+            };
+
+            HNPost {
+                title: el.text().collect::<String>(),
+                url,
+            }
         })
         .collect::<Vec<_>>()
 }
@@ -41,6 +52,7 @@ fn get_more_link(document: &scraper::Html) -> Option<String> {
         .and_then(|el| el.value().attr("href").map(|s| s.to_string()))
 }
 
+#[derive(Debug, Clone)]
 pub struct HNPost {
     pub title: String,
     pub url: String,
@@ -53,7 +65,7 @@ pub fn stream_pages(
     stream_pages_with_base_url(hn_auth, start_path, HN_BASE_URL)
 }
 
-pub fn stream_pages_with_base_url(
+fn stream_pages_with_base_url(
     hn_auth: &str,
     start_path: String,
     base_url: &str,
@@ -74,7 +86,6 @@ pub fn stream_pages_with_base_url(
 
             match response {
                 Ok(resp) => {
-                    // Check if the response is successful
                     if !resp.status().is_success() {
                         return None;
                     }
