@@ -1,6 +1,31 @@
+[package]
+name = "karakeep-sync"
+version = "0.1.0"
+edition = "2024"
+authors = ["Siddhart Doshi <sidoshi.com>"]
+
+[[bin]]
+name = "karakeep-sync"
+path = "crates/sync/src/main.rs"
+
 [workspace]
-members = ["crates/hnscraper", "crates/karakeep-sync"]
+members = ["crates/hnscraper"]
 resolver = "3"
+
+
+[dependencies]
+hnscraper = { path = "crates/hnscraper" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+dotenvy = { workspace = true }
+reqwest = { workspace = true }
+futures = { workspace = true }
+config = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio-cron-scheduler = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
 
 
 [workspace.dependencies]
@@ -9,6 +34,13 @@ dotenvy = "0.15.7"
 futures = "0.3.31"
 reqwest = { version = "0.12.23", features = ["cookies", "json"] }
 tokio = { version = "1.47.1", features = ["full"] }
+hnscraper = { path = "../hnscraper" }
+config = "0.15.17"
+serde = "1.0.228"
+serde_json = "1.0.145"
+tokio-cron-scheduler = { version = "0.14.0", features = ["english", "signal"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.20", features = ["env-filter", "fmt"] }
 # dev dependencies
 tokio-test = "0.4"
 wiremock = "0.6"
