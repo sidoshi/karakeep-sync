@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  karakeep-sync:
+    image: ghcr.io/sidoshi/karakeep-sync:latest
+    container_name: karakeep-sync
+    restart: unless-stopped
+    environment:
+      # Add your environment variables here
+      # You can override these in a .env file
+      - RUST_LOG=info
+      - KS_KARAKEEP_AUTH=<your_karakeep_auth_cookie> # required
+      - KS_KARAKEEP_URL=<your_karakeep_instance_url> # required
+      - KS_HN_AUTH=<your_hn_auth_cookie> # required
+      - KS_HN_SCHEDULE=@daily # Cron format, e.g., "@hourly", "@daily", "0 0 * * *" default is "@daily"
+      # - HN_USERNAME=your_username
+      # - HN_PASSWORD=your_password
+      # - KARAKEEP_API_KEY=your_api_key
+    # Add resource limits for production
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.5"
+        reservations:
+          memory: 64M
+          cpus: "0.25"

@@ -1,0 +1,34 @@
+# Git
+.git
+.gitignore
+README.md
+.jj
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Build artifacts
+target/
+.cargo/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files (be careful with secrets)
+.env*
+
+# GitHub
+.github/
+
+# Scripts (unless needed in container)
+scripts/
