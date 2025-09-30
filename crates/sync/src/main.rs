@@ -1,11 +1,15 @@
+use std::sync::Arc;
+
 use tokio::signal;
 use tokio_cron_scheduler::{Job, JobScheduler};
 
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-mod hn;
 mod karakeep;
+mod plugin;
 mod settings;
+
+use plugin::Plugin;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -20,30 +24,52 @@ async fn main() -> anyhow::Result<()> {
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    let settings = settings::get_settings();
     let mut scheduler = JobScheduler::new().await?;
 
-    let hn_job_daily = Job::new_async(&settings.hn.schedule, move |_uuid, _l| {
-        tracing::info!("starting HN sync daily job");
-        let settings = settings::get_settings();
-        Box::pin(async move {
-            let _ = hn::sync_hn_upvoted_posts(&settings.hn.auth).await;
-        })
-    })?;
+    let plugins = plugin::get_plugins()
+        .into_iter()
+        .map(Arc::new)
+        .collect::<Vec<_>>();
 
-    let hn_job_immediate =
-        Job::new_one_shot_async(std::time::Duration::from_millis(10), move |_uuid, _l| {
-            tracing::info!("starting HN sync immediate job");
-            let settings = settings::get_settings();
+    for plugin in plugins {
+        let list_name = plugin.list_name();
+
+        if !plugin.is_activated() {
+            tracing::info!("plugin for list '{}' is not activated, skipping", list_name);
+            continue;
+        }
+
+        if plugin.run_immediate() {
+            let plugin = plugin.clone();
+            let job =
+                Job::new_one_shot_async(std::time::Duration::from_millis(10), move |_uuid, _l| {
+                    tracing::info!("starting immediate sync job for list: {}", list_name);
+                    let p = plugin.clone();
+                    Box::pin(async move {
+                        let _ = p.sync().await;
+                    })
+                })?;
+            scheduler.add(job).await?;
+        }
+
+        tracing::debug!(
+            "scheduling recurring job for list: {}, period: {}",
+            list_name,
+            plugin.recurring_schedule()
+        );
+
+        let schedule = plugin.recurring_schedule().to_string();
+        let job = Job::new_async(&schedule, move |_uuid, _l| {
+            tracing::info!("starting HN sync daily job");
+            let p = plugin.clone();
             Box::pin(async move {
-                let _ = hn::sync_hn_upvoted_posts(&settings.hn.auth).await;
+                let _ = p.sync().await;
             })
         })?;
+        scheduler.add(job).await?;
+    }
 
-    scheduler.add(hn_job_immediate).await?;
-    scheduler.add(hn_job_daily).await?;
     scheduler.start().await?;
-
     signal::ctrl_c().await?;
     scheduler.shutdown().await?;
 

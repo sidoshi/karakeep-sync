@@ -1115,6 +1115,7 @@ dependencies = [
  "anyhow",
  "reqwest",
  "serde_json",
+ "tracing",
 ]
 
 [[package]]

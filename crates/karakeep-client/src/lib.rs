@@ -5,6 +5,11 @@ pub struct KarakeepClient {
     client: Client,
 }
 
+pub struct BookmarkCreate {
+    pub title: String,
+    pub url: String,
+}
+
 impl KarakeepClient {
     pub fn new(url: &str, auth_token: &str) -> Self {
         let mut headers = reqwest::header::HeaderMap::new();
@@ -154,5 +159,32 @@ impl KarakeepClient {
         let _resp = self.client.put(&url).send().await?;
 
         Ok(())
+    }
+
+    pub async fn upsert_bookmark_to_list(
+        &self,
+        bookmark: &BookmarkCreate,
+        list_id: &str,
+    ) -> anyhow::Result<bool> {
+        // Check if bookmark exists by URL
+        tracing::debug!("checking if bookmark exists: {}", &bookmark.url);
+        let exists = self.check_exists_bookmark(&bookmark.url).await?;
+        let to_create = exists.is_none();
+        tracing::debug!("bookmark exists: {}", !to_create);
+
+        let bookmark_id: String;
+        // If it doesn't exist, create it
+        if to_create {
+            tracing::info!("creating bookmark: {} - {}", &bookmark.title, &bookmark.url);
+            bookmark_id = self.create_bookmark(&bookmark.title, &bookmark.url).await?;
+        } else {
+            bookmark_id = exists.unwrap();
+        }
+
+        tracing::debug!("adding bookmark: {} to list: {}", &bookmark_id, list_id);
+        // Either way, make sure that the bookmark is in the specified list
+        self.ensure_bookmark_in_list(&bookmark_id, list_id).await?;
+        // Return true if created, false if already existed
+        Ok(to_create)
     }
 }
