@@ -1,4 +1,5 @@
 use crate::settings;
+use async_trait::async_trait;
 use futures::{Stream, StreamExt};
 use hnscraper::stream_pages;
 use karakeep_client::BookmarkCreate;
@@ -11,15 +12,16 @@ fn extract_username_from_auth(hn_auth: &str) -> Option<String> {
     hn_auth.split('&').next().map(|s| s.to_string())
 }
 
+#[async_trait]
 impl super::Plugin for HNUpvoted {
     fn list_name(&self) -> &'static str {
         "HN Upvoted"
     }
 
-    fn to_bookmark_stream(
+    async fn to_bookmark_stream(
         &self,
     ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Vec<BookmarkCreate>> + Send>>> {
-        let settings = &settings::get_settings();
+        let settings = settings::get_settings();
         let auth = &settings.hn.auth;
         let username = extract_username_from_auth(&auth)
             .ok_or_else(|| anyhow::anyhow!("Failed to extract username from auth token"))?;

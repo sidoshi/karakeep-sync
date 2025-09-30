@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use futures::Stream;
 use karakeep_client::BookmarkCreate;
 use std::pin::Pin;
@@ -8,23 +9,24 @@ use reddit_client::RedditClientRefresher;
 #[derive(Debug, Clone)]
 pub struct RedditSaves {}
 
+#[async_trait]
 impl super::Plugin for RedditSaves {
     fn list_name(&self) -> &'static str {
         "Reddit Saved"
     }
 
-    fn to_bookmark_stream(
+    async fn to_bookmark_stream(
         &self,
     ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Vec<BookmarkCreate>> + Send>>> {
-        let settings = &settings::get_settings();
-        let client_id = &settings.reddit.client_id;
-        let client_secret = &settings.reddit.client_secret;
-        let refresh_token = &settings.reddit.refresh_token;
+        let settings = settings::get_settings();
+        let client_id = settings.reddit.client_id.clone();
+        let client_secret = settings.reddit.client_secret.clone();
+        let refresh_token = settings.reddit.refresh_token.clone();
 
         let _client = RedditClientRefresher::new(
-            client_id.into(),
-            client_secret.into(),
-            refresh_token.into(),
+            client_id,
+            client_secret,
+            refresh_token,
         );
 
         todo!()
