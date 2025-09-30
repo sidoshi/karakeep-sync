@@ -18,7 +18,9 @@ pub async fn sync_hn_upvoted_posts(hn_auth: &str) -> anyhow::Result<i32> {
 
     let mut exists = 0;
     let mut created_count = 0;
-    let list_id = karakeep::ensure_list_exists(HN_UPVOTED_LIST).await?;
+
+    let client = karakeep::get_client();
+    let list_id = client.ensure_list_exists(HN_UPVOTED_LIST).await?;
 
     while let Some(page) = pages.next().await {
         tracing::info!("processing a page of upvoted posts (count={})", page.len());

@@ -1109,6 +1109,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "karakeep-client"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "reqwest",
+ "serde_json",
+]
+
+[[package]]
 name = "karakeep-sync"
 version = "0.1.0"
 dependencies = [
@@ -1117,6 +1126,7 @@ dependencies = [
  "dotenvy",
  "futures",
  "hnscraper",
+ "karakeep-client",
  "reqwest",
  "serde",
  "serde_json",

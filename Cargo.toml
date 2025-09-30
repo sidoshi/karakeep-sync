@@ -9,12 +9,13 @@ name = "karakeep-sync"
 path = "crates/sync/src/main.rs"
 
 [workspace]
-members = ["crates/hnscraper"]
+members = ["crates/hnscraper", "crates/karakeep-client"]
 resolver = "3"
 
 
 [dependencies]
 hnscraper = { path = "crates/hnscraper" }
+karakeep-client = { path = "crates/karakeep-client" }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 dotenvy = { workspace = true }
