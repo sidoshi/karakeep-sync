@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use futures::Stream;
 use karakeep_client::BookmarkCreate;
-use std::pin::Pin;
+use std::{pin::Pin, sync::Arc};
 
 use crate::settings;
 use reddit_client::RedditClientRefresher;
@@ -19,25 +19,42 @@ impl super::Plugin for RedditSaves {
         &self,
     ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Vec<BookmarkCreate>> + Send>>> {
         let settings = settings::get_settings();
-        let client_id = settings.reddit.client_id.clone();
-        let client_secret = settings.reddit.client_secret.clone();
-        let refresh_token = settings.reddit.refresh_token.clone();
+        let client_id = settings.reddit.clientid.clone();
+        let client_secret = settings.reddit.clientsecret.clone();
+        let refresh_token = settings.reddit.refreshtoken.clone();
 
-        let _client = RedditClientRefresher::new(
-            client_id,
-            client_secret,
-            refresh_token,
-        );
+        let client = RedditClientRefresher::new(client_id, client_secret, refresh_token)
+            .refresh()
+            .await?;
+        let client = Arc::new(client);
 
-        todo!()
+        let stream = futures::stream::unfold(None, move |after: Option<String>| {
+            let client = client.clone();
+            async move {
+                let resp = client.list_saved(after.as_deref()).await.ok()?;
+
+                let items = resp
+                    .posts
+                    .into_iter()
+                    .map(|post| BookmarkCreate {
+                        title: post.title,
+                        url: post.url,
+                    })
+                    .collect::<Vec<_>>();
+
+                Some((items, resp.after))
+            }
+        });
+
+        Ok(Box::pin(stream))
     }
 
     fn is_activated(&self) -> bool {
         let settings = settings::get_settings();
 
-        !settings.reddit.client_id.is_empty()
-            && !settings.reddit.client_secret.is_empty()
-            && !settings.reddit.refresh_token.is_empty()
+        !settings.reddit.clientid.is_empty()
+            && !settings.reddit.clientsecret.is_empty()
+            && !settings.reddit.refreshtoken.is_empty()
     }
 
     fn recurring_schedule(&self) -> String {

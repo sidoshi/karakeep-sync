@@ -18,9 +18,9 @@ pub(crate) struct KarakeepSettings {
 
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct RedditSettings {
-    pub client_id: String,
-    pub client_secret: String,
-    pub refresh_token: String,
+    pub clientid: String,
+    pub clientsecret: String,
+    pub refreshtoken: String,
     pub schedule: String,
 }
 

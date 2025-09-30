@@ -33,7 +33,11 @@ pub trait Plugin: Send + Sync + 'static {
         let list_id = client.ensure_list_exists(list_name).await?;
 
         while let Some(chunk) = stream.next().await {
-            tracing::info!("processing a page of upvoted posts (count={})", chunk.len());
+            tracing::info!(
+                "processing chunk for list: {} (count={})",
+                list_name,
+                chunk.len()
+            );
             for bookmark in chunk {
                 let created = client.upsert_bookmark_to_list(&bookmark, &list_id).await?;
                 if created {
