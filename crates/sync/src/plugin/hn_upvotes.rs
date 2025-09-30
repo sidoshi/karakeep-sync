@@ -22,7 +22,12 @@ impl super::Plugin for HNUpvoted {
         &self,
     ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Vec<BookmarkCreate>> + Send>>> {
         let settings = settings::get_settings();
-        let auth = &settings.hn.auth;
+        let auth = &settings
+            .hn
+            .auth
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("HN auth token is not set"))?;
+
         let username = extract_username_from_auth(&auth)
             .ok_or_else(|| anyhow::anyhow!("Failed to extract username from auth token"))?;
         let start_path = format!("upvoted?id={}", username);
@@ -41,8 +46,7 @@ impl super::Plugin for HNUpvoted {
 
     fn is_activated(&self) -> bool {
         let settings = &settings::get_settings();
-
-        !settings.hn.auth.is_empty()
+        settings.hn.auth.is_some() && !settings.hn.auth.as_ref().unwrap().is_empty()
     }
 
     fn recurring_schedule(&self) -> String {

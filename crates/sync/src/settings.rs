@@ -6,7 +6,7 @@ use crate::settings;
 
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct HNSettings {
-    pub auth: String,
+    pub auth: Option<String>,
     pub schedule: String,
 }
 
@@ -18,9 +18,9 @@ pub(crate) struct KarakeepSettings {
 
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct RedditSettings {
-    pub clientid: String,
-    pub clientsecret: String,
-    pub refreshtoken: String,
+    pub clientid: Option<String>,
+    pub clientsecret: Option<String>,
+    pub refreshtoken: Option<String>,
     pub schedule: String,
 }
 

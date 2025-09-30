@@ -1,3 +1,4 @@
+use anyhow::Context;
 use async_trait::async_trait;
 use futures::Stream;
 use karakeep_client::BookmarkCreate;
@@ -19,18 +20,47 @@ impl super::Plugin for RedditSaves {
         &self,
     ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Vec<BookmarkCreate>> + Send>>> {
         let settings = settings::get_settings();
-        let client_id = settings.reddit.clientid.clone();
-        let client_secret = settings.reddit.clientsecret.clone();
-        let refresh_token = settings.reddit.refreshtoken.clone();
+        let client_id = settings
+            .reddit
+            .clientid
+            .as_ref()
+            .context("Reddit client ID is not set")?
+            .clone();
+        let client_secret = settings
+            .reddit
+            .clientsecret
+            .as_ref()
+            .context("Reddit client secret is not set")?
+            .clone();
+        let refresh_token = settings
+            .reddit
+            .refreshtoken
+            .as_ref()
+            .context("Reddit refresh token is not set")?
+            .clone();
 
         let client = RedditClientRefresher::new(client_id, client_secret, refresh_token)
             .refresh()
             .await?;
         let client = Arc::new(client);
 
-        let stream = futures::stream::unfold(None, move |after: Option<String>| {
+        enum StreamState {
+            Init,
+            Next(Option<String>),
+        }
+
+        let stream = futures::stream::unfold(StreamState::Init, move |state| {
             let client = client.clone();
+
             async move {
+                let after = match &state {
+                    StreamState::Init => None,
+                    StreamState::Next(after) => after.as_ref().cloned(),
+                };
+                if after.is_none() && matches!(state, StreamState::Next(_)) {
+                    return None;
+                }
+
                 let resp = client.list_saved(after.as_deref()).await.ok()?;
 
                 let items = resp
@@ -42,7 +72,12 @@ impl super::Plugin for RedditSaves {
                     })
                     .collect::<Vec<_>>();
 
-                Some((items, resp.after))
+                tracing::debug!(
+                    "fetched {} saved posts from Reddit, after: {:?}",
+                    items.len(),
+                    resp.after
+                );
+                Some((items, StreamState::Next(resp.after)))
             }
         });
 
@@ -52,9 +87,9 @@ impl super::Plugin for RedditSaves {
     fn is_activated(&self) -> bool {
         let settings = settings::get_settings();
 
-        !settings.reddit.clientid.is_empty()
-            && !settings.reddit.clientsecret.is_empty()
-            && !settings.reddit.refreshtoken.is_empty()
+        settings.reddit.clientid.is_some()
+            && settings.reddit.clientsecret.is_some()
+            && settings.reddit.refreshtoken.is_some()
     }
 
     fn recurring_schedule(&self) -> String {

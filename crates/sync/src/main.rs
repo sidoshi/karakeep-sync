@@ -17,7 +17,8 @@ async fn main() -> anyhow::Result<()> {
                 .add_directive("tower=off".parse().unwrap())
                 .add_directive("hyper=off".parse().unwrap())
                 .add_directive("reqwest=off".parse().unwrap())
-                .add_directive("karakeep_sync=trace".parse().unwrap()),
+                .add_directive("karakeep_sync=trace".parse().unwrap())
+                .add_directive("karakeep_client=trace".parse().unwrap()),
         )
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
@@ -50,7 +51,7 @@ async fn main() -> anyhow::Result<()> {
             scheduler.add(job).await?;
         }
 
-        tracing::debug!(
+        tracing::info!(
             "scheduling recurring job for list: {}, period: {}",
             list_name,
             plugin.recurring_schedule()
