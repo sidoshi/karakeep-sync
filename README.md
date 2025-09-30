@@ -10,6 +10,7 @@ When looking up something interesting you found in the past, you probably check 
 
 - ✅ Hacker News upvotes
 - ✅ Reddit saved posts
+- 🚧 Github stars (planned)
 - 🚧 X bookmarks (planned)
 - 🚧 Bluesky bookmarks (planned)
 
