@@ -9,7 +9,7 @@ name = "karakeep-sync"
 path = "crates/sync/src/main.rs"
 
 [workspace]
-members = ["crates/hnscraper", "crates/karakeep-client"]
+members = ["crates/hnscraper", "crates/karakeep-client", "crates/reddit-client"]
 resolver = "3"
 
 
