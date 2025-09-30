@@ -16,6 +16,7 @@ resolver = "3"
 [dependencies]
 hnscraper = { path = "crates/hnscraper" }
 karakeep-client = { path = "crates/karakeep-client" }
+reddit-client = { path = "crates/reddit-client" }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 dotenvy = { workspace = true }

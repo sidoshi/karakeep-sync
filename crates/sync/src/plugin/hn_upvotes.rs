@@ -39,7 +39,8 @@ impl super::Plugin for HNUpvoted {
 
     fn is_activated(&self) -> bool {
         let settings = &settings::get_settings();
-        !settings.hn.auth.is_empty() && !settings.hn.schedule.is_empty()
+
+        !settings.hn.auth.is_empty()
     }
 
     fn recurring_schedule(&self) -> String {

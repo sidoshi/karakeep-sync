@@ -1128,6 +1128,7 @@ dependencies = [
  "futures",
  "hnscraper",
  "karakeep-client",
+ "reddit-client",
  "reqwest",
  "serde",
  "serde_json",

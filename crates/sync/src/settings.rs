@@ -17,9 +17,18 @@ pub(crate) struct KarakeepSettings {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub(crate) struct RedditSettings {
+    pub client_id: String,
+    pub client_secret: String,
+    pub refresh_token: String,
+    pub schedule: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub(crate) struct Settings {
     pub hn: HNSettings,
     pub karakeep: KarakeepSettings,
+    pub reddit: RedditSettings,
 }
 
 impl Settings {
@@ -29,6 +38,8 @@ impl Settings {
         let config = Config::builder()
             .add_source(config::Environment::with_prefix("KS").separator("_"))
             .set_override("hn.schedule", "@daily")
+            .unwrap()
+            .set_override("reddit.schedule", "@daily")
             .unwrap()
             .build()
             .unwrap();
