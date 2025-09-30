@@ -1,7 +1,8 @@
 use crate::settings;
-use futures::StreamExt;
+use futures::{Stream, StreamExt};
 use hnscraper::stream_pages;
 use karakeep_client::BookmarkCreate;
+use std::pin::Pin;
 
 #[derive(Debug, Clone)]
 pub struct HNUpvoted {}
@@ -11,11 +12,13 @@ fn extract_username_from_auth(hn_auth: &str) -> Option<String> {
 }
 
 impl super::Plugin for HNUpvoted {
-    const LIST_NAME: &'static str = "HN Upvoted";
+    fn list_name(&self) -> &'static str {
+        "HN Upvoted"
+    }
 
     fn to_bookmark_stream(
         &self,
-    ) -> anyhow::Result<impl futures::Stream<Item = Vec<BookmarkCreate>> + Send> {
+    ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Vec<BookmarkCreate>> + Send>>> {
         let settings = &settings::get_settings();
         let auth = &settings.hn.auth;
         let username = extract_username_from_auth(&auth)
@@ -31,7 +34,7 @@ impl super::Plugin for HNUpvoted {
                 .collect::<Vec<_>>()
         });
 
-        Ok(stream)
+        Ok(Box::pin(stream))
     }
 
     fn is_activated(&self) -> bool {
@@ -39,8 +42,8 @@ impl super::Plugin for HNUpvoted {
         !settings.hn.auth.is_empty() && !settings.hn.schedule.is_empty()
     }
 
-    fn recurring_schedule(&self) -> &str {
+    fn recurring_schedule(&self) -> String {
         let settings = &settings::get_settings();
-        &settings.hn.schedule
+        settings.hn.schedule.clone()
     }
 }

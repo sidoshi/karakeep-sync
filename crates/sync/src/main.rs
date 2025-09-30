@@ -9,8 +9,6 @@ mod karakeep;
 mod plugin;
 mod settings;
 
-use plugin::Plugin;
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let subscriber = FmtSubscriber::builder()

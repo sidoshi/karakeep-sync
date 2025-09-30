@@ -1,36 +1,39 @@
 mod hn_upvotes;
+mod reddit_saves;
 
 use crate::karakeep;
-use futures::StreamExt;
+use futures::{Stream, StreamExt};
 use karakeep_client::BookmarkCreate;
+use std::pin::Pin;
 
-pub trait Plugin: Clone + Send + Sync {
-    const LIST_NAME: &'static str;
+pub trait Plugin: Send + Sync + 'static {
+    fn list_name(&self) -> &'static str;
 
     fn to_bookmark_stream(
         &self,
-    ) -> anyhow::Result<impl futures::Stream<Item = Vec<BookmarkCreate>> + Send>;
+    ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Vec<BookmarkCreate>> + Send>>>;
+
     fn is_activated(&self) -> bool;
-    fn recurring_schedule(&self) -> &str;
+    fn recurring_schedule(&self) -> String;
 
     fn run_immediate(&self) -> bool {
         true
     }
 
-    fn list_name(&self) -> &'static str {
-        Self::LIST_NAME
-    }
+    fn sync(
+        &self,
+    ) -> Pin<Box<dyn std::future::Future<Output = anyhow::Result<i32>> + Send + 'static>> {
+        let stream_result = self.to_bookmark_stream();
+        let list_name = self.list_name();
 
-    fn sync(&self) -> impl std::future::Future<Output = anyhow::Result<i32>> + Send {
-        async {
-            let stream = self.to_bookmark_stream()?;
-            tokio::pin!(stream);
+        Box::pin(async move {
+            let mut stream = stream_result?;
 
             let mut exists = 0;
             let mut created_count = 0;
 
             let client = karakeep::get_client();
-            let list_id = client.ensure_list_exists(self.list_name()).await?;
+            let list_id = client.ensure_list_exists(list_name).await?;
 
             while let Some(chunk) = stream.next().await {
                 tracing::info!("processing a page of upvoted posts (count={})", chunk.len());
@@ -52,10 +55,13 @@ pub trait Plugin: Clone + Send + Sync {
             }
 
             Ok(created_count)
-        }
+        })
     }
 }
 
-pub fn get_plugins() -> Vec<impl Plugin> {
-    vec![hn_upvotes::HNUpvoted {}]
+pub fn get_plugins() -> Vec<Box<dyn Plugin>> {
+    vec![
+        Box::new(hn_upvotes::HNUpvoted {}),
+        Box::new(reddit_saves::RedditSaves {}),
+    ]
 }
