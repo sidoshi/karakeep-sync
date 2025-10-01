@@ -1,3 +1,4 @@
+mod github_stars;
 mod hn_upvotes;
 mod reddit_saves;
 
@@ -55,6 +56,12 @@ pub trait Plugin: Send + Sync + 'static {
             }
         }
 
+        tracing::info!(
+            "sync complete for list: {} (created={})",
+            list_name,
+            created_count
+        );
+
         Ok(created_count)
     }
 }
@@ -63,5 +70,6 @@ pub fn get_plugins() -> Vec<Box<dyn Plugin>> {
     vec![
         Box::new(hn_upvotes::HNUpvoted {}),
         Box::new(reddit_saves::RedditSaves {}),
+        Box::new(github_stars::GithubStars {}),
     ]
 }

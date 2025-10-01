@@ -56,7 +56,17 @@ Reddit saves will be synced to a list named `Reddit Saved` in your Karakeep inst
 
 Reddit sync will be skipped if any of `KS_REDDIT_CLIENTID`, `KS_REDDIT_CLIENTSECRET` or `KS_REDDIT_REFRESHTOKEN` is not set.
 
+### GitHub Stars
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `KS_GITHUB_TOKEN` | ❌ | Your GitHub personal access token |
+| `KS_GITHUB_SCHEDULE` | ❌ | Sync schedule in cron format (default: `@daily`) |
 
+To obtain a GitHub personal access token, you can visit [this link](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) and create a new token with `Starring` user permission (read).
+
+GitHub stars will be synced to a list named `GitHub Starred` in your Karakeep instance.
+
+GitHub sync will be skipped if `KS_GITHUB_TOKEN` is not set.
 
 ## Deployment
 

@@ -5,6 +5,12 @@ use std::sync::OnceLock;
 use crate::settings;
 
 #[derive(Debug, Clone, Deserialize)]
+pub(crate) struct GitHubSettings {
+    pub token: Option<String>,
+    pub schedule: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub(crate) struct HNSettings {
     pub auth: Option<String>,
     pub schedule: String,
@@ -29,6 +35,7 @@ pub(crate) struct Settings {
     pub hn: HNSettings,
     pub karakeep: KarakeepSettings,
     pub reddit: RedditSettings,
+    pub github: GitHubSettings,
 }
 
 impl Settings {
@@ -40,6 +47,8 @@ impl Settings {
             .set_override("hn.schedule", "@daily")
             .unwrap()
             .set_override("reddit.schedule", "@daily")
+            .unwrap()
+            .set_override("github.schedule", "@daily")
             .unwrap()
             .build()
             .unwrap();
