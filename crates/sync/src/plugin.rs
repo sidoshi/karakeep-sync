@@ -56,6 +56,12 @@ pub trait Plugin: Send + Sync + 'static {
             }
         }
 
+        tracing::info!(
+            "sync complete for list: {} (created={})",
+            list_name,
+            created_count
+        );
+
         Ok(created_count)
     }
 }
