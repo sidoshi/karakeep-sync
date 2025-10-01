@@ -78,14 +78,21 @@ impl KarakeepClient {
             return Ok(None);
         }
 
-        let url_to_check: Url = bookmark_url.parse().expect("Failed to parse URL to check");
-        let bookmark_url: Url = bookmarks[0]
+        let url_to_check = bookmark_url.parse();
+        if url_to_check.is_err() {
+            return Ok(None);
+        }
+        let url_to_check: Url = url_to_check.unwrap();
+        let bookmark_url = bookmarks[0]
             .get("content")
             .and_then(|c| c.get("url"))
             .and_then(|u| u.as_str())
             .unwrap_or("")
-            .parse()
-            .expect("Failed to parse bookmark URL");
+            .parse();
+        if bookmark_url.is_err() {
+            return Ok(None);
+        }
+        let bookmark_url: Url = bookmark_url.unwrap();
 
         if bookmark_url == url_to_check {
             let id = bookmarks[0]

@@ -10,7 +10,7 @@ When looking up something interesting you found in the past, you probably check 
 
 - ✅ Hacker News upvotes
 - ✅ Reddit saved posts
-- 🚧 Github stars (planned)
+- ✅ Github stars
 - 🚧 X bookmarks (planned)
 - 🚧 Bluesky bookmarks (planned)
 
@@ -89,6 +89,9 @@ services:
       - KS_REDDIT_CLIENTSECRET=<your_reddit_client_secret> # optional
       - KS_REDDIT_REFRESHTOKEN=<your_reddit_refresh_token> # optional
       - KS_REDDIT_SCHEDULE=@daily # optional Cron format, e.g., "@hourly", "@daily", "0 0 * * *" default is "@daily"
+
+      - KS_GITHUB_TOKEN=<your_github_personal_access_token> # optional
+      - KS_GITHUB_SCHEDULE=@daily # optional Cron format, e.g., "@hour
 ```
 
 Then run:
@@ -104,6 +107,8 @@ You can also add this service definition alongside your existing Hoarder/Karakee
 Contributions are welcome! Please open issues or pull requests for any features, bug fixes, or improvements.
 
 To add support for more services, implement the `Plugin` trait in a new module under `crates/sync/src/plugin/`. You can refer to the existing `hn_upvotes` and `reddit_saves` modules as examples. All plugins must be registered in `crates/sync/src/plugin.rs`. Make sure to add appropriate configuration options in `crates/sync/src/settings.rs`. Finally, update the documentation in this README to include the new service.
+
+See this PR for adding GitHub stars support as an example: [#2](https://github.com/sidoshi/karakeep-sync/pull/2)
 
 
 ## License
