@@ -28,9 +28,9 @@ impl super::Plugin for HNUpvoted {
             .as_ref()
             .ok_or_else(|| anyhow::anyhow!("HN auth token is not set"))?;
 
-        let username = extract_username_from_auth(&auth)
+        let username = extract_username_from_auth(auth)
             .ok_or_else(|| anyhow::anyhow!("Failed to extract username from auth token"))?;
-        let start_path = format!("upvoted?id={}", username);
+        let start_path = format!("upvoted?id={username}");
 
         let stream = stream_pages(auth, start_path)?.map(|page| {
             page.into_iter()

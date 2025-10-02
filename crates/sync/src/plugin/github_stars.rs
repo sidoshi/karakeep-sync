@@ -22,7 +22,7 @@ fn parse_next_link(link_header: &str) -> Option<String> {
                     .ok()?;
 
                 let query = url.query()?;
-                Some(format!("?{}", query))
+                Some(format!("?{query}"))
             } else {
                 None
             }
@@ -52,15 +52,12 @@ impl super::Plugin for GithubStars {
             tracing::info!("fetching GitHub stars with params: {}, {token}", params);
 
             let mut headers = reqwest::header::HeaderMap::new();
-            headers.insert(
-                "Authorization",
-                format!("Bearer {}", token).parse().unwrap(),
-            );
+            headers.insert("Authorization", format!("Bearer {token}").parse().unwrap());
             headers.insert("User-Agent", "karakeep-sync/1.0".parse().unwrap());
             headers.insert("Accept", "application/vnd.github.v3+json".parse().unwrap());
 
             let client = reqwest::Client::new();
-            let url = format!("https://api.github.com/user/starred{}", params);
+            let url = format!("https://api.github.com/user/starred{params}");
             let resp = client.get(url).headers(headers).send().await.ok()?;
 
             let next_page = resp.headers().get("Link").and_then(|link_header| {

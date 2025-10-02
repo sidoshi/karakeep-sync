@@ -62,11 +62,9 @@ impl Settings {
             .build()
             .unwrap();
 
-        let settings = config
+        config
             .try_deserialize::<settings::Settings>()
-            .expect("Failed to deserialize settings");
-
-        settings
+            .expect("Failed to deserialize settings")
     }
 }
 

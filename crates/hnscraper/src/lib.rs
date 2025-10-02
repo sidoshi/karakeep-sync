@@ -31,7 +31,7 @@ fn get_upvoted_submissions_from_document(document: &scraper::Html) -> Vec<HNPost
 
             // if the URL is relative, make it absolute
             let url = if url.starts_with("item?") {
-                format!("{}/{}", HN_BASE_URL, url)
+                format!("{HN_BASE_URL}/{url}")
             } else {
                 url
             };
@@ -70,16 +70,14 @@ fn stream_pages_with_base_url(
     start_path: String,
     base_url: &str,
 ) -> anyhow::Result<impl futures::Stream<Item = Vec<HNPost>>> {
-    let client = get_hn_client(&hn_auth)?;
+    let client = get_hn_client(hn_auth)?;
     let base_url = base_url.to_string();
 
     let pages = stream::unfold(Some(start_path), move |path| {
         let client = Arc::clone(&client);
         let base_url = base_url.clone();
         async move {
-            if path.is_none() {
-                return None;
-            }
+            path.as_ref()?;
 
             let url = format!("{}/{}", base_url, path.unwrap());
             let response = client.get(&url).send().await;
