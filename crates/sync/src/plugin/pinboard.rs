@@ -41,10 +41,7 @@ impl super::Plugin for PinboardBookmarks {
         tracing::info!("fetching Pinboard bookmarks");
 
         let client = reqwest::Client::new();
-        let url = format!(
-            "https://api.pinboard.in/v1/posts/all?auth_token={}&format=json",
-            token
-        );
+        let url = format!("https://api.pinboard.in/v1/posts/all?auth_token={token}&format=json");
         let resp = client.get(&url).send().await?;
 
         if !resp.status().is_success() {

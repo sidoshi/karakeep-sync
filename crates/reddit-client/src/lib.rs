@@ -56,13 +56,11 @@ impl RedditClientRefresher {
         let access_token = resp
             .get("access_token")
             .and_then(|t| t.as_str())
-            .ok_or_else(|| {
-                anyhow::anyhow!("Failed to get access token from response: {:?}", resp)
-            })?;
+            .ok_or_else(|| anyhow::anyhow!("Failed to get access token from response: {resp:?}"))?;
 
         let resp = self
             .client
-            .get(&format!("{}/api/v1/me", APP_URL))
+            .get(format!("{APP_URL}/api/v1/me"))
             .bearer_auth(access_token)
             .send()
             .await?
@@ -71,7 +69,7 @@ impl RedditClientRefresher {
         let username = resp
             .get("name")
             .and_then(|n| n.as_str())
-            .ok_or_else(|| anyhow::anyhow!("Failed to get username from response: {:?}", resp))?;
+            .ok_or_else(|| anyhow::anyhow!("Failed to get username from response: {resp:?}"))?;
 
         Ok(RedditClient {
             access_token: access_token.to_string(),
@@ -118,7 +116,7 @@ impl RedditClient {
     pub async fn list_saved(&self, after: Option<&str>) -> anyhow::Result<ListSavedResponse> {
         let mut req = self
             .client
-            .get(&format!("{}/user/{}/saved", APP_URL, self.username))
+            .get(format!("{}/user/{}/saved", APP_URL, self.username))
             .bearer_auth(&self.access_token);
 
         if let Some(after) = after {

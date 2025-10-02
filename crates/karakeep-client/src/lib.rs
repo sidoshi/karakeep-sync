@@ -16,7 +16,7 @@ impl KarakeepClient {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
             reqwest::header::AUTHORIZATION,
-            reqwest::header::HeaderValue::from_str(&format!("Bearer {}", auth_token)).unwrap(),
+            reqwest::header::HeaderValue::from_str(&format!("Bearer {auth_token}")).unwrap(),
         );
         let client = Client::builder().default_headers(headers).build().unwrap();
 
@@ -49,8 +49,7 @@ impl KarakeepClient {
             .map(|id| id.to_string())
             .ok_or_else(|| {
                 anyhow::anyhow!(
-                    "Failed to create bookmark, response did not contain an ID: {:?}",
-                    resp
+                    "Failed to create bookmark, response did not contain an ID: {resp:?}"
                 )
             })
     }
@@ -149,10 +148,7 @@ impl KarakeepClient {
             .and_then(|id| id.as_str())
             .map(|id| id.to_string())
             .ok_or_else(|| {
-                anyhow::anyhow!(
-                    "Failed to create list, response did not contain an ID: {:?}",
-                    resp
-                )
+                anyhow::anyhow!("Failed to create list, response did not contain an ID: {resp:?}")
             })
     }
 
@@ -181,14 +177,13 @@ impl KarakeepClient {
         let to_create = exists.is_none();
         tracing::debug!("bookmark exists: {}", !to_create);
 
-        let bookmark_id: String;
         // If it doesn't exist, create it
-        if to_create {
+        let bookmark_id: String = if to_create {
             tracing::info!("creating bookmark: {} - {}", &bookmark.title, &bookmark.url);
-            bookmark_id = self.create_bookmark(bookmark).await?;
+            self.create_bookmark(bookmark).await?
         } else {
-            bookmark_id = exists.unwrap();
-        }
+            exists.unwrap()
+        };
 
         tracing::debug!("adding bookmark: {} to list: {}", &bookmark_id, list_id);
         // Either way, make sure that the bookmark is in the specified list
