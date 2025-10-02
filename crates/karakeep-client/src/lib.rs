@@ -8,6 +8,7 @@ pub struct KarakeepClient {
 pub struct BookmarkCreate {
     pub title: String,
     pub url: String,
+    pub created_at: Option<String>,
 }
 
 impl KarakeepClient {
@@ -25,12 +26,13 @@ impl KarakeepClient {
         }
     }
 
-    pub async fn create_bookmark(&self, title: &str, url: &str) -> anyhow::Result<String> {
+    pub async fn create_bookmark(&self, bookmark: &BookmarkCreate) -> anyhow::Result<String> {
         let api_url = format!("{}/api/v1/bookmarks", self.url);
         let params = serde_json::json!({
             "type": "link",
-            "title": title,
-            "url": url,
+            "title": bookmark.title,
+            "url": bookmark.url,
+            "createdAt": bookmark.created_at,
         });
 
         let resp = self
@@ -183,7 +185,7 @@ impl KarakeepClient {
         // If it doesn't exist, create it
         if to_create {
             tracing::info!("creating bookmark: {} - {}", &bookmark.title, &bookmark.url);
-            bookmark_id = self.create_bookmark(&bookmark.title, &bookmark.url).await?;
+            bookmark_id = self.create_bookmark(bookmark).await?;
         } else {
             bookmark_id = exists.unwrap();
         }

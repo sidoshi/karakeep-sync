@@ -57,6 +57,7 @@ impl super::Plugin for PinboardBookmarks {
             .map(|post| BookmarkCreate {
                 url: post.href,
                 title: post.description,
+                created_at: None,
             })
             .collect();
 

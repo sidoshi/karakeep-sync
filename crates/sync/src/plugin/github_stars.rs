@@ -74,6 +74,7 @@ impl super::Plugin for GithubStars {
                 .map(|item| BookmarkCreate {
                     url: item["html_url"].as_str().unwrap_or("").to_string(),
                     title: item["full_name"].as_str().unwrap_or("").to_string(),
+                    created_at: None,
                 })
                 .collect();
 
