@@ -69,6 +69,7 @@ impl super::Plugin for RedditSaves {
                     .map(|post| BookmarkCreate {
                         title: post.title,
                         url: post.url,
+                        // Reddt does not provide timestamp for when the post was saved
                         created_at: None,
                     })
                     .collect::<Vec<_>>();
