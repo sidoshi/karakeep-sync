@@ -31,11 +31,18 @@ pub(crate) struct RedditSettings {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub(crate) struct PinboardSettings {
+    pub token: Option<String>,
+    pub schedule: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub(crate) struct Settings {
     pub hn: HNSettings,
     pub karakeep: KarakeepSettings,
     pub reddit: RedditSettings,
     pub github: GitHubSettings,
+    pub pinboard: PinboardSettings,
 }
 
 impl Settings {
@@ -49,6 +56,8 @@ impl Settings {
             .set_override("reddit.schedule", "@daily")
             .unwrap()
             .set_override("github.schedule", "@daily")
+            .unwrap()
+            .set_override("pinboard.schedule", "@daily")
             .unwrap()
             .build()
             .unwrap();
