@@ -39,7 +39,7 @@ impl super::Plugin for GithubStars {
     async fn to_bookmark_stream(
         &self,
     ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Vec<BookmarkCreate>> + Send>>> {
-        let stream = stream::unfold(Some("?page=2".to_string()), move |params| async move {
+        let stream = stream::unfold(Some("?page=1".to_string()), move |params| async move {
             let params = params?;
 
             let settings = &settings::get_settings();
@@ -49,7 +49,7 @@ impl super::Plugin for GithubStars {
                 .as_ref()
                 .expect("GitHub token must be set for GitHub Stars plugin");
 
-            tracing::info!("fetching GitHub stars with params: {}, {token}", params);
+            tracing::info!("fetching GitHub stars with params: {}",  params);
 
             let mut headers = reqwest::header::HeaderMap::new();
             headers.insert("Authorization", format!("Bearer {token}").parse().unwrap());
@@ -59,6 +59,11 @@ impl super::Plugin for GithubStars {
             let client = reqwest::Client::new();
             let url = format!("https://api.github.com/user/starred{params}");
             let resp = client.get(url).headers(headers).send().await.ok()?;
+            if resp.status().is_success() {
+                tracing::info!("GitHub stars fetched successfully");
+            } else {
+                tracing::error!("GitHub stars fetch failed: {:?}", resp);
+            }
 
             let next_page = resp.headers().get("Link").and_then(|link_header| {
                 let link_str = link_header.to_str().ok()?;
