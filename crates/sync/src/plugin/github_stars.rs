@@ -49,7 +49,7 @@ impl super::Plugin for GithubStars {
                 .as_ref()
                 .expect("GitHub token must be set for GitHub Stars plugin");
 
-            tracing::info!("fetching GitHub stars with params: {}",  params);
+            tracing::info!("fetching GitHub stars with params: {}", params);
 
             let mut headers = reqwest::header::HeaderMap::new();
             headers.insert("Authorization", format!("Bearer {token}").parse().unwrap());
