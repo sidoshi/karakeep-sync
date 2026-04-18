@@ -41,10 +41,12 @@ Hacker News sync will be skipped if `KS_HN_AUTH` is not set.
 
 | Variable                 | Required | Description                                      |
 | ------------------------ | -------- | ------------------------------------------------ |
-| `KS_REDDIT_CLIENTID`     | ❌       | Your Reddit app client ID                        |
-| `KS_REDDIT_CLIENTSECRET` | ❌       | Your Reddit app client secret                    |
-| `KS_REDDIT_REFRESHTOKEN` | ❌       | Your Reddit app refresh token                    |
-| `KS_REDDIT_SCHEDULE`     | ❌       | Sync schedule in cron format (default: `@daily`) |
+| `KS_REDDIT_CLIENTID`     | ❌        | Your Reddit app client ID                        |
+| `KS_REDDIT_CLIENTSECRET` | ❌        | Your Reddit app client secret                    |
+| `KS_REDDIT_REFRESHTOKEN` | ❌        | Your Reddit app refresh token                    |
+| `KS_REDDIT_USERNAME`     | ❌        | Your Reddit username (without `u/` prefix)       |
+| `KS_REDDIT_SCHEDULE`     | ❌        | Sync schedule in cron format (default: `@daily`) |
+
 
 To obtain a refresh token, you can follow these steps:
 
@@ -53,11 +55,16 @@ To obtain a refresh token, you can follow these steps:
 3. Make sure to give the app `history` scope access.
 4. Make sure to tick the "permanent" option to get a refresh token.
 
-If you don't want to trust a third party tool, you can also implement the OAuth2 flow yourself using the [Reddit API docs](https://www.reddit.com/dev/api/).
+If you don't want to trust a third party tool, you can also implement the OAuth2 flow yourself using the [Reddit API docs](https://www.reddit.com/dev/api/), or [manually generate a token](/REDDIT_REFRESH_TOKEN.md).
 
 Reddit saves will be synced to a list named `Reddit Saved` in your Karakeep instance.
 
-Reddit sync will be skipped if any of `KS_REDDIT_CLIENTID`, `KS_REDDIT_CLIENTSECRET` or `KS_REDDIT_REFRESHTOKEN` is not set.
+Reddit sync will be skipped if any of the following are not set:
+- `KS_REDDIT_CLIENTID`
+- `KS_REDDIT_CLIENTSECRET`
+- `KS_REDDIT_REFRESHTOKEN`
+- `KS_REDDIT_USERNAME`
+
 
 ### GitHub Stars
 
@@ -105,6 +112,7 @@ services:
       - KS_REDDIT_CLIENTID=<your_reddit_client_id> # optional
       - KS_REDDIT_CLIENTSECRET=<your_reddit_client_secret> # optional
       - KS_REDDIT_REFRESHTOKEN=<your_reddit_refresh_token> # optional
+      - KS_REDDIT_USERNAME=<your_reddit_username> #optional
       - KS_REDDIT_SCHEDULE=@daily # optional Cron format, e.g., "@hourly", "@daily", "0 0 * * *" default is "@daily"
 
       - KS_GITHUB_TOKEN=<your_github_personal_access_token> # optional

@@ -1,4 +1,4 @@
-use reqwest::{Client, Url};
+use reqwest::{Client, Response, Url};
 
 pub struct KarakeepClient {
     url: String,
@@ -11,6 +11,16 @@ pub struct BookmarkCreate {
     pub created_at: Option<String>,
 }
 
+async fn parse_response(resp: Response) -> anyhow::Result<serde_json::Value> {
+    let status = resp.status();
+    let body = resp.text().await?;
+    if !status.is_success() {
+        return Err(anyhow::anyhow!("Karakeep API returned {}: {}", status, body));
+    }
+    serde_json::from_str(&body)
+        .map_err(|e| anyhow::anyhow!("Failed to parse Karakeep response: {e}\nBody: {body}"))
+}
+
 impl KarakeepClient {
     pub fn new(url: &str, auth_token: &str) -> Self {
         let mut headers = reqwest::header::HeaderMap::new();
@@ -18,7 +28,7 @@ impl KarakeepClient {
             reqwest::header::AUTHORIZATION,
             reqwest::header::HeaderValue::from_str(&format!("Bearer {auth_token}")).unwrap(),
         );
-        let client = Client::builder().default_headers(headers).build().unwrap();
+        let client = Client::builder().default_headers(headers).timeout(std::time::Duration::from_secs(30)).build().unwrap();
 
         Self {
             url: url.into(),
@@ -41,14 +51,7 @@ impl KarakeepClient {
             );
         }
 
-        let resp = self
-            .client
-            .post(&api_url)
-            .json(&params)
-            .send()
-            .await?
-            .json::<serde_json::Value>()
-            .await?;
+        let resp = parse_response(self.client.post(&api_url).json(&params).send().await?).await?;
 
         resp.get("id")
             .and_then(|id| id.as_str())
@@ -66,18 +69,18 @@ impl KarakeepClient {
     ) -> anyhow::Result<Option<String>> {
         let url = format!("{}/api/v1/bookmarks/search", self.url);
 
-        let resp = self
-            .client
-            .get(&url)
-            .query(&[
-                ("q", bookmark_url),
-                ("includeContent", "false"),
-                ("limit", "1"),
-            ])
-            .send()
-            .await?
-            .json::<serde_json::Value>()
-            .await?;
+        let resp = parse_response(
+            self.client
+                .get(&url)
+                .query(&[
+                    ("q", bookmark_url),
+                    ("includeContent", "false"),
+                    ("limit", "1"),
+                ])
+                .send()
+                .await?,
+        )
+        .await?;
 
         let bookmarks = resp.get("bookmarks").and_then(|b| b.as_array()).unwrap();
 
@@ -115,14 +118,7 @@ impl KarakeepClient {
     pub async fn ensure_list_exists(&self, list_name: &str) -> anyhow::Result<String> {
         let url = format!("{}/api/v1/lists", self.url);
 
-        // First, check if the list already exists
-        let resp = self
-            .client
-            .get(&url)
-            .send()
-            .await?
-            .json::<serde_json::Value>()
-            .await?;
+        let resp = parse_response(self.client.get(&url).send().await?).await?;
 
         let lists = resp.get("lists").and_then(|l| l.as_array()).unwrap();
 
@@ -141,14 +137,8 @@ impl KarakeepClient {
             "icon": "🚀"
         });
 
-        let resp = self
-            .client
-            .post(&url)
-            .json(&params)
-            .send()
-            .await?
-            .json::<serde_json::Value>()
-            .await?;
+        let resp =
+            parse_response(self.client.post(&url).json(&params).send().await?).await?;
 
         resp.get("id")
             .and_then(|id| id.as_str())

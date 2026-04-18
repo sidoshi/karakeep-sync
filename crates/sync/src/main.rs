@@ -18,7 +18,8 @@ async fn main() -> anyhow::Result<()> {
                 .add_directive("hyper=off".parse().unwrap())
                 .add_directive("reqwest=off".parse().unwrap())
                 .add_directive("karakeep_sync=trace".parse().unwrap())
-                .add_directive("karakeep_client=trace".parse().unwrap()),
+                .add_directive("karakeep_client=trace".parse().unwrap())
+                .add_directive("reddit_client=info".parse().unwrap()),
         )
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
@@ -45,7 +46,9 @@ async fn main() -> anyhow::Result<()> {
                     tracing::info!("starting immediate sync job for list: {}", list_name);
                     let p = plugin.clone();
                     Box::pin(async move {
-                        let _ = p.sync().await;
+                        if let Err(e) = p.sync().await {
+                            tracing::error!("sync failed for list '{}': {:#}", list_name, e);
+                        }
                     })
                 })?;
             scheduler.add(job).await?;
@@ -59,10 +62,12 @@ async fn main() -> anyhow::Result<()> {
 
         let schedule = plugin.recurring_schedule().to_string();
         let job = Job::new_async(&schedule, move |_uuid, _l| {
-            tracing::info!("starting HN sync daily job");
+            tracing::info!("starting recurring sync job for list: {}", list_name);
             let p = plugin.clone();
             Box::pin(async move {
-                let _ = p.sync().await;
+                if let Err(e) = p.sync().await {
+                    tracing::error!("sync failed for list '{}': {:#}", list_name, e);
+                }
             })
         })?;
         scheduler.add(job).await?;
