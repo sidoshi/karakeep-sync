@@ -15,11 +15,7 @@ async fn parse_response(resp: Response) -> anyhow::Result<serde_json::Value> {
     let status = resp.status();
     let body = resp.text().await?;
     if !status.is_success() {
-        return Err(anyhow::anyhow!(
-            "Karakeep API returned {}: {}",
-            status,
-            body
-        ));
+        return Err(anyhow::anyhow!("Karakeep API returned {status}: {body}",));
     }
     serde_json::from_str(&body)
         .map_err(|e| anyhow::anyhow!("Failed to parse Karakeep response: {e}\nBody: {body}"))
@@ -131,10 +127,10 @@ impl KarakeepClient {
         let lists = resp.get("lists").and_then(|l| l.as_array()).unwrap();
 
         for list in lists {
-            if list.get("name").and_then(|n| n.as_str()) == Some(list_name) {
-                if let Some(id) = list.get("id").and_then(|id| id.as_str()) {
-                    return Ok(id.to_string());
-                }
+            if list.get("name").and_then(|n| n.as_str()) == Some(list_name)
+                && let Some(id) = list.get("id").and_then(|id| id.as_str())
+            {
+                return Ok(id.to_string());
             }
         }
 
