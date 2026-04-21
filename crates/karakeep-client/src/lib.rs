@@ -15,7 +15,11 @@ async fn parse_response(resp: Response) -> anyhow::Result<serde_json::Value> {
     let status = resp.status();
     let body = resp.text().await?;
     if !status.is_success() {
-        return Err(anyhow::anyhow!("Karakeep API returned {}: {}", status, body));
+        return Err(anyhow::anyhow!(
+            "Karakeep API returned {}: {}",
+            status,
+            body
+        ));
     }
     serde_json::from_str(&body)
         .map_err(|e| anyhow::anyhow!("Failed to parse Karakeep response: {e}\nBody: {body}"))
@@ -28,7 +32,11 @@ impl KarakeepClient {
             reqwest::header::AUTHORIZATION,
             reqwest::header::HeaderValue::from_str(&format!("Bearer {auth_token}")).unwrap(),
         );
-        let client = Client::builder().default_headers(headers).timeout(std::time::Duration::from_secs(30)).build().unwrap();
+        let client = Client::builder()
+            .default_headers(headers)
+            .timeout(std::time::Duration::from_secs(30))
+            .build()
+            .unwrap();
 
         Self {
             url: url.into(),
@@ -137,8 +145,7 @@ impl KarakeepClient {
             "icon": "🚀"
         });
 
-        let resp =
-            parse_response(self.client.post(&url).json(&params).send().await?).await?;
+        let resp = parse_response(self.client.post(&url).json(&params).send().await?).await?;
 
         resp.get("id")
             .and_then(|id| id.as_str())
