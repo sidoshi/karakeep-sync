@@ -117,7 +117,7 @@ impl RedditClient {
         let status = resp.status();
         let body = resp.text().await?;
         if !status.is_success() {
-            return Err(anyhow::anyhow!("Reddit API returned {}: {}", status, body));
+            return Err(anyhow::anyhow!("Reddit API returned {status}: {body}"));
         }
         let resp = serde_json::from_str::<ListingResponse>(&body)
             .map_err(|e| anyhow::anyhow!("Failed to parse Reddit response: {e}\nBody: {body}"))?;
