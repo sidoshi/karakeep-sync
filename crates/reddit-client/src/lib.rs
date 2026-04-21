@@ -27,6 +27,7 @@ impl RedditClientRefresher {
         );
         let client = reqwest::Client::builder()
             .default_headers(headers)
+            .timeout(std::time::Duration::from_secs(30))
             .build()
             .unwrap();
 
@@ -38,7 +39,7 @@ impl RedditClientRefresher {
         }
     }
 
-    pub async fn refresh(&self) -> anyhow::Result<RedditClient> {
+    pub async fn refresh(&self, username: String) -> anyhow::Result<RedditClient> {
         let params = [
             ("grant_type", "refresh_token"),
             ("refresh_token", &self.refresh_token),
@@ -58,23 +59,12 @@ impl RedditClientRefresher {
             .and_then(|t| t.as_str())
             .ok_or_else(|| anyhow::anyhow!("Failed to get access token from response: {resp:?}"))?;
 
-        let resp = self
-            .client
-            .get(format!("{APP_URL}/api/v1/me"))
-            .bearer_auth(access_token)
-            .send()
-            .await?
-            .json::<serde_json::Value>()
-            .await?;
-        let username = resp
-            .get("name")
-            .and_then(|n| n.as_str())
-            .ok_or_else(|| anyhow::anyhow!("Failed to get username from response: {resp:?}"))?;
+        tracing::info!("Reddit authenticated as u/{}", username);
 
         Ok(RedditClient {
             access_token: access_token.to_string(),
             client: self.client.clone(),
-            username: username.to_string(),
+            username,
         })
     }
 }
@@ -123,7 +113,14 @@ impl RedditClient {
             req = req.query(&[("after", after)]);
         }
 
-        let resp = req.send().await?.json::<ListingResponse>().await?;
+        let resp = req.send().await?;
+        let status = resp.status();
+        let body = resp.text().await?;
+        if !status.is_success() {
+            return Err(anyhow::anyhow!("Reddit API returned {}: {}", status, body));
+        }
+        let resp = serde_json::from_str::<ListingResponse>(&body)
+            .map_err(|e| anyhow::anyhow!("Failed to parse Reddit response: {e}\nBody: {body}"))?;
 
         let posts = resp
             .data

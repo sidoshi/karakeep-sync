@@ -27,6 +27,7 @@ pub(crate) struct RedditSettings {
     pub clientid: Option<String>,
     pub clientsecret: Option<String>,
     pub refreshtoken: Option<String>,
+    pub username: Option<String>,
     pub schedule: String,
 }
 

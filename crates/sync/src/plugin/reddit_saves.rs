@@ -38,9 +38,15 @@ impl super::Plugin for RedditSaves {
             .as_ref()
             .context("Reddit refresh token is not set")?
             .clone();
+        let username = settings
+            .reddit
+            .username
+            .as_ref()
+            .context("Reddit username is not set")?
+            .clone();
 
         let client = RedditClientRefresher::new(client_id, client_secret, refresh_token)
-            .refresh()
+            .refresh(username)
             .await?;
         let client = Arc::new(client);
 
@@ -61,7 +67,13 @@ impl super::Plugin for RedditSaves {
                     return None;
                 }
 
-                let resp = client.list_saved(after.as_deref()).await.ok()?;
+                let resp = match client.list_saved(after.as_deref()).await {
+                    Ok(r) => r,
+                    Err(e) => {
+                        tracing::error!("Reddit list_saved failed: {:#}", e);
+                        return None;
+                    }
+                };
 
                 let items = resp
                     .posts
@@ -74,11 +86,6 @@ impl super::Plugin for RedditSaves {
                     })
                     .collect::<Vec<_>>();
 
-                tracing::debug!(
-                    "fetched {} saved posts from Reddit, after: {:?}",
-                    items.len(),
-                    resp.after
-                );
                 Some((items, StreamState::Next(resp.after)))
             }
         });
@@ -92,6 +99,7 @@ impl super::Plugin for RedditSaves {
         settings.reddit.clientid.is_some()
             && settings.reddit.clientsecret.is_some()
             && settings.reddit.refreshtoken.is_some()
+            && settings.reddit.username.is_some()
     }
 
     fn recurring_schedule(&self) -> String {
