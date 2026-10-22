@@ -8,6 +8,8 @@ use crate::settings;
 pub(crate) struct GitHubSettings {
     pub token: Option<String>,
     pub schedule: String,
+    #[serde(default)]
+    pub synclists: bool,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -72,4 +74,29 @@ impl Settings {
 static SETTINGS: OnceLock<Settings> = OnceLock::new();
 pub fn get_settings() -> &'static Settings {
     SETTINGS.get_or_init(Settings::new)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn github_lists_are_opt_in() {
+        let config = Config::builder()
+            .set_override("schedule", "@daily")
+            .unwrap()
+            .build()
+            .unwrap();
+        let settings: GitHubSettings = config.try_deserialize().unwrap();
+        assert!(!settings.synclists);
+        let config = Config::builder()
+            .set_override("schedule", "@daily")
+            .unwrap()
+            .set_override("synclists", "true")
+            .unwrap()
+            .build()
+            .unwrap();
+        let settings: GitHubSettings = config.try_deserialize().unwrap();
+        assert!(settings.synclists);
+    }
 }

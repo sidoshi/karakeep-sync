@@ -1137,6 +1137,7 @@ dependencies = [
  "tokio-cron-scheduler",
  "tracing",
  "tracing-subscriber",
+ "wiremock",
 ]
 
 [[package]]

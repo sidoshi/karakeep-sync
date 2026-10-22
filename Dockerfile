@@ -15,7 +15,7 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates/ ./crates/
 
 # Build dependencies (this is the cached layer)
-RUN cargo build --release --bin karakeep-sync
+RUN cargo build --locked --release --bin karakeep-sync
 
 # Runtime stage - using distroless for minimal size
 FROM gcr.io/distroless/cc-debian12

@@ -30,6 +30,9 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 async-trait = "0.1"
 
+[dev-dependencies]
+wiremock = { workspace = true }
+
 
 [workspace.dependencies]
 anyhow = "1.0.100"

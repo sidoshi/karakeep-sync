@@ -95,6 +95,23 @@ impl super::Plugin for GithubStars {
         let settings = &settings::get_settings();
         settings.github.schedule.clone()
     }
+
+    async fn sync_additional_lists(
+        &self,
+        client: &karakeep_client::KarakeepClient,
+    ) -> anyhow::Result<()> {
+        let settings = &settings::get_settings().github;
+        if settings.synclists {
+            let token = settings
+                .token
+                .as_deref()
+                .ok_or_else(|| anyhow::anyhow!("GitHub token is not set"))?;
+            super::github_lists::GithubLists::new(token, "https://api.github.com/graphql")?
+                .sync(client)
+                .await?;
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
